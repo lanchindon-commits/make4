@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年終安檢預約與項目選擇</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#DC2626', // 紅色，代表熱情與動力
+                        'secondary': '#FBBF24', // 金色，代表年終與榮耀
+                        'neutral-light': '#F9FAFB',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 自定義樣式來提升表單視覺效果 */
+        .item-card {
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .item-card.selected {
+            border-color: #DC2626; /* Primary color border when selected */
+            background-color: #FEF2F2; /* Light red background */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-neutral-light min-h-screen p-4 sm:p-8 font-sans">
+
+    <!-- 主容器 -->
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-6 sm:p-10">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-primary mb-2 flex items-center justify-center space-x-3">
+                <img id="companyLogo" src="https://img95.699pic.com/xsj/0c/gg/ty.jpg!/fw/700/watermark/url/L3hzai93YXRlcl9kZXRhaWwyLnBuZw/align/southeast" alt="公司 Logo" class="h-10 object-contain">
+                <span>年終全面安檢預約表</span>
+            </h1>
+            <!-- 新增：活動時間 -->
+            <p class="text-lg font-bold text-red-600 mb-3">活動期間: 2026.01.12 ~ 2026.02.07</p>
+            <p class="text-xl text-gray-700 font-semibold">檢查越多，省得越多！最高現折 $800！</p>
+        </header>
+
+        <!-- 折扣計算區 -->
+        <div class="bg-primary text-white p-4 rounded-lg mb-8 shadow-lg">
+            <h2 class="text-lg font-bold mb-1">您的預估折扣：</h2>
+            <div class="flex justify-between items-center">
+                <p class="text-sm">已選項目數量：<span id="itemCount" class="text-secondary font-extrabold text-2xl">0</span> 項</p>
+                <p class="text-sm">累計折抵金額：<span id="discountAmount" class="text-secondary font-extrabold text-3xl">$0</span></p>
+            </div>
+            <p class="text-xs mt-2 opacity-80">* 每選擇 2 項折抵 $100。此為預估金額，最終以現場服務確認為準。</p>
+        </div>
+
+        <!-- 耗材選擇清單 -->
+        <form id="bookingForm" onsubmit="handleBooking(event)">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">請勾選預計更換/檢查的項目 (16項)</h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <!-- 16項耗材清單，使用 checkbox 和 click 事件模擬卡片選擇 -->
+                <script>
+                    const items = [
+                        { name: "機油", image: "https://forum.jorsindo.com/data/attachment/forum/202308/17/114544zsfxu2ur2whyfc74.jpg.thumb.jpg" },
+                        { name: "機油濾網/空濾", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTiYywfbHiAMqp-DhSoGbJp0SXNyn7uNM5Qyw&s" },
+                        { name: "火星塞", image: "https://www.oicar.cc/upload_file/ottoline/570/15476955701.jpg" },
+                        { name: "皮帶", image: "https://i8.momoshop.com.tw/1748343119/goodsimg/TP000/5912/0000/061/TP00059120000061_O.webp" },
+                        { name: "前輪胎", image: "https://i4.momoshop.com.tw/1692470531/goodsimg/0011/086/780/11086780_O_m.webp" },
+                        { name: "後輪胎", image: "https://img.shoplineapp.com/media/image_clips/660fe7994ebf42001d51b85a/original.jpg?1712318361" },
+                        { name: "來令片", image: "https://cdn1.techbang.com/system/images/331985/medium/b4bf7770ba6f12e009c9833242393a6a.jpg?1452621627" },
+                        { name: "煞車皮", image: "https://image-cdn-flare.qdm.cloud/q532d3f21b9709/image/data/2015/07/21/copy-rcupsvi-1503456000-X.jpg" },
+                        { name: "碟盤", image: "https://triones.com.tw/wp-content/uploads/2023/01/LINE_ALBUM_20221215_230112_47-1024x768.jpg" },
+                        { name: "前煞車油", image: "https://forum.jorsindo.com/forum.php?mod=image&aid=452054&size=3000x0&key=df808e70157c9baf&type=fixnone" },
+                        { name: "後煞車油", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyI3QJyrsZ76W2yu6770yRewqsBQ_v_DHwDg&s" },
+                        { name: "傳動 (檢查/清潔)", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmTWzYFceGw6_XC6xO1Xgn1K6AZAWIDJcnuQ&s" },
+                        { name: "電瓶", image: "https://gcs.rimg.com.tw/g2/d/a3/3e/22003231556414_811.jpg" },
+                        { name: "噴油嘴 (清洗)", image: "https://www.ncy-motor.com.tw/cht/upload_files/main-Jets-pliot-jets/yamaha/436n04injas100/436n04injas100-s.jpg" },
+                        { name: "節流閥 (清洗)", image: "https://img.feebee.tw/i/Zim5D4S5gV79K0a7EQi6-wmNNhiHiUBDOLSrL0ojhRs/372/aHR0cHM6Ly9jZi5zaG9wZWUudHcvZmlsZS90dy0xMTEzNDIwMS03cmFzai1tMnQ2czIwdHE2cDdmNw.webp" },
+                        { name: "汽油精", image: "https://thumbnail.coupangcdn.com/thumbnails/remote/492x492ex/image/vendor_inventory/9212/a2637a232834d9a2eb8f958faf6af3d70740bc47e6a00a4efe7273d260d6.jpg" },
+                    ];
+
+                    const itemGrid = document.querySelector('.grid');
+                    items.forEach((item, index) => {
+                        const cardId = `item-${index}`;
+                        const html = `
+                            <div id="${cardId}" class="item-card bg-neutral-light p-3 rounded-lg flex flex-col items-center text-center hover:shadow-md" onclick="toggleSelection('${cardId}', 'item_checkbox_${index}')">
+                                <input type="checkbox" id="item_checkbox_${index}" name="selected_items" value="${item.name}" class="hidden" onchange="updateDiscount()">
+                                <img src="${item.image}" alt="${item.name}" class="w-16 h-16 rounded-full object-cover mb-2 border border-gray-200" onerror="this.onerror=null; this.src='https://placehold.co/100x100/9CA3AF/FFFFFF?text=圖';" />
+                                <span class="text-sm font-medium text-gray-800">${item.name}</span>
+                            </div>
+                        `;
+                        itemGrid.innerHTML += html;
+                    });
+                </script>
+            </div>
+
+            <!-- 預約資訊區塊 -->
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">預約資訊填寫</h3>
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="customerName" class="block text-sm font-medium text-gray-700">您的姓名 <span class="text-red-500">*</span></label>
+                        <input type="text" id="customerName" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="contactPhone" class="block text-sm font-medium text-gray-700">聯絡電話 <span class="text-red-500">*</span></label>
+                        <input type="tel" id="contactPhone" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                    </div>
+                </div>
+
+                <!-- 店鋪選擇欄位 -->
+                <div>
+                    <label for="storeLocation" class="block text-sm font-medium text-gray-700">選擇預約店鋪 <span class="text-red-500">*</span></label>
+                    <select id="storeLocation" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                        <option value="">請選擇店鋪</option>
+                        <option value="金旺昇">金旺昇</option>
+                        <option value="忍店">忍店</option>
+                        <option value="金力盛">金力盛</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="vehiclePlate" class="block text-sm font-medium text-gray-700">車牌號碼 (機車) <span class="text-red-500">*</span></label>
+                        <input type="text" id="vehiclePlate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" placeholder="例如: ABC-1234">
+                    </div>
+                    <div>
+                        <label for="vehicleModel" class="block text-sm font-medium text-gray-700">車型款式 <span class="text-red-500">*</span></label>
+                        <input type="text" id="vehicleModel" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" placeholder="例如: Yamaha Cygnus X 125">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="appointmentDate" class="block text-sm font-medium text-gray-700">預約日期 <span class="text-red-500">*</span></label>
+                        <input type="date" id="appointmentDate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="appointmentTime" class="block text-sm font-medium text-gray-700">預約時段 <span class="text-red-500">*</span></label>
+                        <select id="appointmentTime" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border bg-white focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                            <option value="">請選擇時段</option>
+                            <option value="09:00-11:00">09:00 - 11:00 (上午)</option>
+                            <option value="11:00-13:00">11:00 - 13:00 (中午)</option>
+                            <option value="14:00-16:00">14:00 - 16:00 (下午)</option>
+                            <option value="16:00-18:00">16:00 - 18:00 (下午/傍晚)</option>
+                            <option value="18:00-20:00">18:00 - 20:00 (傍晚/晚上)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 新增：注意事項文字 -->
+            <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 rounded-lg shadow-sm">
+                <h4 class="font-bold text-lg mb-2 flex items-center">
+                    <!-- Warning Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.427 2.607-1.427 3.372 0l4.474 8.342c.765 1.427-.275 3.19-1.886 3.19H5.669c-1.61 0-2.651-1.763-1.886-3.19l4.474-8.342zM12 9V7a1 1 0 00-2 0v2a1 1 0 002 0zm-1 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                    </svg>
+                    重要注意事項 (預約須知)
+                </h4>
+                <ul class="list-disc ml-5 space-y-1 text-sm">
+                    <li>**機油限定：** 您的預約更換機油項目，僅適用於價格 **$300 元以上** 的機油產品。</li>
+                    <li>**不可先購待換：** 本次活動的折扣及項目，僅限於**當次服務**使用，恕不接受先預購耗材或服務留待未來使用。</li>
+                </ul>
+            </div>
+
+            <!-- 提交按鈕 (已更新 ID 和初始文字) -->
+            <button type="submit" id="submitButton" class="w-full mt-8 py-3 px-4 bg-primary text-white font-bold text-lg rounded-lg shadow-md hover:bg-red-700 transition duration-150">
+                確認預約並完成折扣 ($0)
+            </button>
+        </form>
+
+        <!-- 訊息彈出視窗 (用於替代 alert()) -->
+        <div id="messageBox" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                <h4 id="messageTitle" class="text-xl font-bold text-primary mb-3"></h4>
+                <p id="messageContent" class="text-gray-700 mb-4"></p>
+                <button onclick="closeMessage()" class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-red-700">
+                    關閉
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // JavaScript 邏輯
+        function updateDiscount() {
+            const checkboxes = document.querySelectorAll('input[name="selected_items"]:checked');
+            const itemCount = checkboxes.length;
+            
+            // 計算折扣：每選 2 項折 $100
+            const discount = Math.floor(itemCount / 2) * 100;
+            
+            // 更新 UI 顯示
+            document.getElementById('itemCount').textContent = itemCount;
+            document.getElementById('discountAmount').textContent = `$${discount}`;
+
+            // 新增：更新提交按鈕的文字以顯示當前折扣金額
+            const submitBtn = document.getElementById('submitButton');
+            if (submitBtn) {
+                submitBtn.textContent = `確認預約並完成折扣 ($${discount})`;
+            }
+        }
+
+        function toggleSelection(cardId, checkboxId) {
+            const card = document.getElementById(cardId);
+            const checkbox = document.getElementById(checkboxId);
+            
+            // 切換 checkbox 狀態
+            checkbox.checked = !checkbox.checked;
+            
+            // 切換卡片樣式
+            card.classList.toggle('selected', checkbox.checked);
+            
+            // 重新計算折扣
+            updateDiscount();
+        }
+
+        function showMessage(title, content) {
+            document.getElementById('messageTitle').textContent = title;
+            document.getElementById('messageContent').textContent = content;
+            document.getElementById('messageBox').classList.remove('hidden');
+            document.getElementById('messageBox').classList.add('flex');
+        }
+
+        function closeMessage() {
+            document.getElementById('messageBox').classList.remove('flex');
+            document.getElementById('messageBox').classList.add('hidden');
+        }
+
+        async function handleBooking(event) {
+            event.preventDefault(); // 阻止表單預設提交
+
+            // 確保按鈕不可重複點擊，避免多次送出
+            const submitButton = document.getElementById('submitButton'); // 使用 ID 獲取按鈕
+            
+            // 獲取當前折扣金額，用於恢復按鈕狀態
+            const currentDiscount = Math.floor(document.querySelectorAll('input[name="selected_items"]:checked').length / 2) * 100;
+
+            submitButton.disabled = true;
+            submitButton.textContent = '處理中... 請稍候';
+            submitButton.classList.add('opacity-50');
+
+            // --- 收集資料 ---
+            const checkboxes = document.querySelectorAll('input[name="selected_items"]:checked');
+            const itemCount = checkboxes.length;
+            const discount = currentDiscount; // 使用已計算的折扣
+            
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('contactPhone').value;
+            const plate = document.getElementById('vehiclePlate').value;
+            const model = document.getElementById('vehicleModel').value;
+            
+            // --- NEW: 取得選擇的店鋪 ---
+            const store = document.getElementById('storeLocation').value; 
+
+            const date = document.getElementById('appointmentDate').value;
+            const time = document.getElementById('appointmentTime').value;
+
+            // --- 驗證邏輯 ---
+            if (itemCount < 2) {
+                showMessage("預約失敗", "請至少選擇 2 項耗材或服務，才能啟動年終優惠折扣喔！");
+                submitButton.disabled = false;
+                // 恢復按鈕文字到當前折扣狀態
+                submitButton.textContent = `確認預約並完成折扣 ($${currentDiscount})`;
+                submitButton.classList.remove('opacity-50');
+                return;
+            }
+            // 驗證店鋪是否選擇
+            if (!store) {
+                 showMessage("預約失敗", "請選擇您想預約的店鋪 (金旺昇、忍店或金力盛)。");
+                submitButton.disabled = false;
+                // 恢復按鈕文字到當前折扣狀態
+                submitButton.textContent = `確認預約並完成折扣 ($${currentDiscount})`;
+                submitButton.classList.remove('opacity-50');
+                return;
+            }
+
+
+            // 提取選擇的項目名稱
+            const selectedItems = Array.from(checkboxes).map(cb => cb.value);
+
+            // 組織要傳送的資料物件 (新增店鋪欄位)
+            const formData = {
+                customerName: name,
+                contactPhone: phone,
+                vehiclePlate: plate,
+                vehicleModel: model,
+                storeLocation: store, // <-- 新增的欄位
+                appointmentDate: date,
+                appointmentTime: time,
+                selectedItems: selectedItems.join('、'),
+                itemCount: itemCount,
+                estimatedDiscount: discount,
+                timestamp: new Date().toISOString()
+            };
+
+            // =========================================================================
+            // ** 核心資料傳送區塊：Apps Script 網頁應用程式網址 **
+            // ❗❗❗ 請將下方的範例網址替換為您部署後取得的 Apps Script Web App URL ❗❗❗
+            const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxZLeJMMR29CXcn-UEH6vrj1Mo8n9AiGM8FnEZNbAmPQFCbfxGIdn33pyH2c8YiZ-FK/exec"; 
+            // =========================================================================
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+               const text = await response.text();
+console.log('Make response:', text);
+
+if (response.ok) {
+  const title = "✅ 預約成功！";
+  const content = `感謝 ${name} (${phone})！\n您已成功預約 ${date} ${time} 在【${store}】的服務。\n\n預估折扣金額：$${discount}\n\n請準時前來！`;
+  showMessage(title, content);
+
+  document.getElementById('bookingForm').reset();
+  document.querySelectorAll('.item-card').forEach(card => card.classList.remove('selected'));
+  updateDiscount();
+} else {
+  showMessage("❌ 預約失敗 (Webhook 錯誤)", text || "Make Webhook 回傳失敗");
+}
+{
+                    const title = "✅ 預約成功！";
+                    // 成功訊息中加入店鋪名稱
+                    const content = `感謝 ${name} (${phone})！\n您已成功預約 ${date} ${time} 在【${store}】的服務。\n\n預估折扣金額：$${discount}\n\n請準時前來！`;
+                    showMessage(title, content);
+                    
+                    // 清空表單，準備下一個預約
+                    document.getElementById('bookingForm').reset();
+                    document.querySelectorAll('.item-card').forEach(card => card.classList.remove('selected'));
+                    updateDiscount(); // 清空後更新折扣為 $0
+                } else {
+                    const errorMsg = result.message || `傳輸失敗，可能 API 網址不正確或 Apps Script 執行錯誤。\n伺服器訊息: ${result.details || '未知錯誤'}`;
+                    showMessage("❌ 預約失敗 (API 錯誤)", errorMsg);
+                }
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                showMessage("❌ 預約失敗 (網路錯誤)", "無法連線至預約系統，請確認您的網路狀況或 API 網址是否正確。");
+            } finally {
+                // 無論成功或失敗，如果表單尚未重置，則恢復按鈕狀態
+                submitButton.disabled = false;
+                if (!document.getElementById('bookingForm').elements.customerName.value) {
+                    // 如果表單已清空，updateDiscount() 會將按鈕設置為 $0
+                } else {
+                    // 如果表單未清空 (失敗/網路錯誤)，恢復為當前計算的折扣
+                    submitButton.textContent = `確認預約並完成折扣 ($${currentDiscount})`;
+                }
+                submitButton.classList.remove('opacity-50');
+            }
+
+        }
+
+        // 初始化：點擊卡片時，同步更新 checkbox 狀態和折扣
+        document.addEventListener('DOMContentLoaded', () => {
+            const allCards = document.querySelectorAll('.item-card');
+            allCards.forEach(card => {
+                const checkboxId = card.querySelector('input[type="checkbox"]').id;
+                card.onclick = () => toggleSelection(card.id, checkboxId);
+            });
+            updateDiscount(); // 初始化折扣顯示，並設定按鈕文字
+        });
+
+    </script>
+</body>
+</html>
